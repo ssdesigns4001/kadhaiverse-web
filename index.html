@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KadhaiVerse – Interactive Moral Storytelling Website</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --primary: #FF5E7E;
+            --primary-light: #FFA3B5;
+            --secondary: #FFA41B;
+            --accent: #00D2D3;
+            --mint: #1DD1A1;
+            --sky: #54A0FF;
+            --wood-dark: #5D4037;
+            --bg-main: #FFFDF4;
+            --bg-card: #FFFFFF;
+            --border-color: #2D3436;
+            --text-dark: #2D3436;
+            --shadow-pop: 5px 5px 0px #2D3436;
+            --shadow-pop-sm: 3px 3px 0px #2D3436;
+            --radius-md: 18px;
+            --radius-lg: 28px;
+            --radius-full: 9999px;
+            --font-display: 'Bubblegum Sans', cursive, sans-serif;
+            --font-head: 'Fredoka', cursive, sans-serif;
+            --font-body: 'Quicksand', sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #141226;
+            --bg-card: #23203C;
+            --border-color: #FFEAA7;
+            --text-dark: #FDFEFE;
+            --shadow-pop: 5px 5px 0px #FFEAA7;
+            --shadow-pop-sm: 3px 3px 0px #FFEAA7;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        #interactive3DCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.75;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 10;
+        }
+
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+
+        /* Splash Intro */
+        #splashScreen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: radial-gradient(circle at center, rgba(255, 159, 243, 0.45), rgba(84, 160, 255, 0.65) 65%, #181236);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            transition: transform 0.7s cubic-bezier(0.77, 0, 0.175, 1);
+            backdrop-filter: blur(8px);
+        }
+
+        #splashScreen.slide-up {
+            transform: translateY(-100%);
+            pointer-events: none;
+        }
+
+        .splash-main-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 920px;
+        }
+
+        .splash-title-box {
+            position: relative;
+            margin-bottom: 0.5rem;
+            animation: floatTitle 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatTitle {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-12px); }
+        }
+
+        .splash-title {
+            font-family: var(--font-display);
+            font-size: clamp(3.4rem, 8.5vw, 6rem);
+            color: #FF5E7E;
+            text-shadow: 4px 4px 0px #2D3436;
+            letter-spacing: 2px;
+            line-height: 1;
+        }
+
+        .splash-title span.hl {
+            color: #FFA41B;
+            text-shadow: 4px 4px 0px #2D3436;
+        }
+
+        .bheem-welcome-container {
+            align-self: flex-start;
+            margin: 0.8rem 0 2rem 1.5rem;
+            display: flex;
+            align-items: flex-end;
+            gap: 1.2rem;
+            max-width: 600px;
+            animation: bounceInLeft 0.8s ease-out;
+        }
+
+        @keyframes bounceInLeft {
+            0% { transform: translateX(-50px); opacity: 0; }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+
+        .bheem-character-card {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #FF9F43, #EE5253);
+            border-radius: 50%;
+            border: 4px solid #2D3436;
+            box-shadow: var(--shadow-pop-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+            animation: pulseBheem 2s infinite alternate;
+        }
+
+        @keyframes pulseBheem {
+            0% { transform: translateY(0) rotate(-2deg); }
+            100% { transform: translateY(-6px) rotate(2deg); }
+        }
+
+        .bheem-avatar-inner {
+            font-size: 3.6rem;
+        }
+
+        .bheem-laddoo-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            font-size: 1.5rem;
+            animation: spinLaddoo 4s linear infinite;
+        }
+
+        @keyframes spinLaddoo {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .bheem-dialogue-bubble {
+            background: #FFFFFF;
+            border: 3px solid #2D3436;
+            border-radius: 20px 20px 20px 4px;
+            padding: 1.1rem 1.4rem;
+            box-shadow: 5px 5px 0px #2D3436;
+            position: relative;
+            text-align: left;
+        }
+
+        .bheem-dialogue-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: 12px;
+            left: -12px;
+            border-width: 10px 12px 10px 0;
+            border-style: solid;
+            border-color: transparent #2D3436 transparent transparent;
+            display: block;
+            width: 0;
+        }
+
+        .bheem-dialogue-bubble::before {
+            content: '';
+            position: absolute;
+            bottom: 14px;
+            left: -8px;
+            border-width: 8px 10px 8px 0;
+            border-style: solid;
+            border-color: transparent #FFFFFF transparent transparent;
+            display: block;
+            width: 0;
+            z-index: 2;
+        }
+
+        .bheem-speaker-name {
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #EE5253;
+            margin-bottom: 0.15rem;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .bheem-dialogue-bubble p {
+            font-family: var(--font-head);
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: #2D3436;
+            line-height: 1.35;
+        }
+
+        .swipe-pill-btn {
+            background: #FFDF00;
+            color: #2D3436;
+            font-family: var(--font-head);
+            font-size: 1.25rem;
+            font-weight: 800;
+            padding: 1rem 2.6rem;
+            border-radius: var(--radius-full);
+            border: 4px solid #2D3436;
+            box-shadow: 6px 6px 0px #2D3436;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.7rem;
+            animation: pulseBtn 2s infinite;
+            transition: all 0.2s ease;
+        }
+
+        .swipe-pill-btn:hover {
+            transform: scale(1.04) translateY(-2px);
+            background: #FFEAA7;
+        }
+
+        @keyframes pulseBtn {
+            0%, 100% { transform: scale(1); box-shadow: 6px 6px 0px #2D3436; }
+            50% { transform: scale(1.03); box-shadow: 8px 8px 0px #2D3436; }
+        }
+
+        /* Site Header */
+        .site-header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 4px solid var(--border-color);
+            padding: 0.8rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        [data-theme="dark"] .site-header { background: rgba(35, 32, 60, 0.92); }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+        }
+
+        .logo {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            cursor: pointer;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--primary);
+            text-shadow: 2px 2px 0px #2D3436;
+        }
+        [data-theme="dark"] .logo { text-shadow: 2px 2px 0px #FFEAA7; }
+        .logo span.highlight { color: var(--secondary); }
+
+        .btn-kid {
+            font-family: var(--font-head);
+            font-size: 1.05rem;
+            padding: 0.45rem 1.2rem;
+            border-radius: var(--radius-full);
+            border: 3px solid var(--border-color);
+            box-shadow: var(--shadow-pop-sm);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            color: #2D3436;
+            font-weight: 700;
+        }
+        .btn-kid:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px transparent;
+        }
+        .btn-pink { background: var(--primary); color: white; }
+        .btn-mint { background: var(--mint); color: white; }
+        .btn-yellow { background: #FFDF00; color: #2D3436; }
+        .btn-sky { background: var(--sky); color: white; }
+
+        /* 3D Hero & Library */
+        .hero-banner-3d {
+            background: linear-gradient(135deg, rgba(255, 159, 243, 0.9), rgba(254, 202, 87, 0.9));
+            border: 4px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2.2rem;
+            margin: 1.8rem 0;
+            box-shadow: var(--shadow-pop);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(8px);
+        }
+        .hero-text h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 5vw, 3.5rem);
+            color: #2D3436;
+            text-shadow: 2px 2px 0px #FFFFFF;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+        }
+        .hero-text p {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #2D3436;
+            max-width: 580px;
+        }
+        .hero-badge-count {
+            background: #FFDF00;
+            color: #2D3436;
+            border: 3px solid #2D3436;
+            padding: 0.25rem 0.8rem;
+            border-radius: var(--radius-full);
+            font-family: var(--font-head);
+            font-size: 0.95rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 0.7rem;
+        }
+
+        .magic-bar {
+            background: var(--bg-card);
+            border: 4px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 0.6rem 1.2rem;
+            box-shadow: var(--shadow-pop);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .magic-bar input {
+            border: none;
+            outline: none;
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 700;
+            background: transparent;
+            flex-grow: 1;
+            color: var(--text-dark);
+        }
+        .magic-bar select {
+            border: 3px solid var(--border-color);
+            background: #FFDF00;
+            font-family: var(--font-head);
+            font-weight: 700;
+            padding: 0.45rem 0.9rem;
+            border-radius: var(--radius-full);
+            outline: none;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .story-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .story-card {
+            background: var(--bg-card);
+            border: 4px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-pop);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        .story-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 8px 8px 0px var(--border-color);
+        }
+        .story-thumb-box {
+            height: 180px;
+            border-bottom: 4px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--mint);
+            color: white;
+            font-family: var(--font-head);
+            font-size: 0.85rem;
+            padding: 0.25rem 0.8rem;
+            border-radius: var(--radius-full);
+            border: 2px solid var(--border-color);
+        }
+        .story-body { padding: 1.25rem; }
+        .story-body h3 {
+            font-family: var(--font-display);
+            font-size: 1.65rem;
+            margin-bottom: 0.35rem;
+            color: var(--text-dark);
+        }
+        .story-moral-chip {
+            background: #FFEAA7;
+            color: #2D3436;
+            font-size: 0.85rem;
+            font-weight: 800;
+            padding: 0.25rem 0.7rem;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 0.7rem;
+            border: 2px solid var(--border-color);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(6px);
+        }
+        .mode-popup {
+            background: #FFFDF4;
+            border: 5px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 10px 10px 0px var(--border-color);
+            animation: popUp 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp {
+            from { transform: scale(0.7); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .mode-popup h2 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            margin-bottom: 0.4rem;
+            color: #2D3436;
+        }
+        .mode-choice-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        .mode-card {
+            border: 3px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.2rem 0.8rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-pop-sm);
+            transition: all 0.15s ease;
+        }
+        .mode-card:hover { transform: translateY(-4px); }
+        .mode-card.read-mode { background: #55E6C1; }
+        .mode-card.narrate-mode { background: #FF9FF3; }
+        .mode-card span.icon { font-size: 3rem; display: block; margin-bottom: 0.3rem; }
+        .mode-card strong { font-family: var(--font-head); font-size: 1.2rem; display: block; color: #2D3436; }
+        .mode-card small { font-weight: 700; color: #2D3436; font-size: 0.85rem; }
+
+        /* Story Stage */
+        .stage-container {
+            max-width: 880px;
+            margin: 1.2rem auto 3rem;
+        }
+        .stage-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+        }
+
+        .narration-speed-bar {
+            background: var(--bg-card);
+            border: 3px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 0.35rem 1rem;
+            box-shadow: var(--shadow-pop-sm);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-family: var(--font-head);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        .speed-btn {
+            background: #FFDF00;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 0.2rem 0.65rem;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 0.8rem;
+            transition: all 0.15s ease;
+        }
+        .speed-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .comic-frame-card {
+            position: relative;
+            background: #FFFFFF;
+            border: 5px solid #2D3436;
+            border-radius: 24px;
+            box-shadow: 8px 8px 0px #2D3436;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .comic-art-viewport {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            background: #000000;
+            overflow: hidden;
+        }
+        .comic-art-svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .scene-number-circle {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: #FFC107;
+            border: 3px solid #2D3436;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-head);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2D3436;
+            z-index: 10;
+        }
+
+        .comic-speech-bubble {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #FFFFFF;
+            color: #1E272E;
+            border: 3px solid #2D3436;
+            padding: 0.65rem 1.1rem;
+            border-radius: 20px;
+            font-family: var(--font-head);
+            font-size: 1rem;
+            font-weight: 700;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.25);
+            z-index: 10;
+            max-width: 280px;
+            text-align: center;
+        }
+        .comic-speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            border-width: 10px 10px 0 0;
+            border-style: solid;
+            border-color: #FFFFFF transparent;
+            display: block;
+            width: 0;
+        }
+
+        .comic-narration-overlay {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            background: rgba(18, 18, 18, 0.78);
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+            padding: 0.45rem 1rem;
+            text-align: center;
+            backdrop-filter: blur(4px);
+            z-index: 10;
+        }
+        .comic-narration-overlay p {
+            color: #FFFFFF;
+            font-size: 0.96rem;
+            font-weight: 600;
+            line-height: 1.35;
+            letter-spacing: 0.15px;
+            margin: 0;
+        }
+
+        .wooden-moral-board {
+            position: relative;
+            background: #EFEBE9;
+            border: 5px solid #2D3436;
+            border-radius: 24px;
+            padding: 2.4rem 1.5rem;
+            text-align: center;
+            box-shadow: 8px 8px 0px #2D3436;
+            margin-bottom: 1.5rem;
+            background-image: radial-gradient(#D7CCC8 20%, transparent 20%);
+            background-size: 18px 18px;
+        }
+        .wooden-sign-header {
+            display: inline-block;
+            background: #5D4037;
+            color: #FFD54F;
+            border: 3px solid #3E2723;
+            border-radius: 10px;
+            padding: 0.5rem 2.4rem;
+            font-family: var(--font-head);
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-bottom: 1.2rem;
+        }
+        .parchment-quote-box {
+            background: #FFF8E1;
+            border: 3px solid #8D6E63;
+            border-radius: 18px;
+            padding: 1.5rem;
+            max-width: 620px;
+            margin: 0 auto 1.4rem;
+            box-shadow: inset 0 0 12px rgba(141, 110, 99, 0.2);
+        }
+        .parchment-quote-box h3 {
+            font-size: 1.6rem;
+            font-family: var(--font-head);
+            color: #3E2723;
+            font-weight: 800;
+            line-height: 1.35;
+        }
+
+        .action-icon-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .circle-nav-btn {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 3.5px solid #2D3436;
+            box-shadow: 3.5px 3.5px 0px #2D3436;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            transition: all 0.15s ease;
+        }
+        .circle-nav-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px transparent;
+        }
+        .circle-blue { background: #54A0FF; }
+        .circle-purple { background: #A55EEA; }
+        .circle-green { background: #2ECC71; }
+        .circle-orange { background: #FF9F43; }
+
+        /* Quiz Stage */
+        .quiz-stage {
+            background: var(--bg-card);
+            border: 4px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-pop);
+            margin-bottom: 2rem;
+        }
+        .quiz-option {
+            background: #FFF9E6;
+            border: 3px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin: 0.8rem 0;
+            font-size: 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: var(--shadow-pop-sm);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transition: all 0.15s ease;
+        }
+        .quiz-option:hover { background: #FECA57; transform: translateX(5px); }
+        .quiz-option.active { background: #55E6C1; border-color: var(--border-color); }
+
+        @media (max-width: 768px) {
+            .bheem-welcome-container { margin: 0.6rem 0 1.2rem 0; flex-direction: column; align-items: flex-start; }
+            .hero-banner-3d { flex-direction: column; text-align: center; gap: 0.8rem; }
+            .comic-art-viewport { height: 320px; }
+            .comic-speech-bubble { font-size: 0.9rem; padding: 0.4rem 0.8rem; max-width: 200px; }
+            .comic-narration-overlay p { font-size: 0.86rem; }
+            .parchment-quote-box h3 { font-size: 1.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="interactive3DCanvas"></canvas>
+
+    <div id="splashScreen">
+        <div class="splash-main-content">
+            <div class="splash-title-box">
+                <h1 class="splash-title">Kadhai<span class="hl">Verse</span></h1>
+            </div>
+
+            <div class="bheem-welcome-container">
+                <div class="bheem-character-card">
+                    <span class="bheem-avatar-inner">👦🏾</span>
+                    <span class="bheem-laddoo-badge">🟡</span>
+                </div>
+                <div class="bheem-dialogue-bubble">
+                    <div class="bheem-speaker-name">
+                        <span>💪</span> Chhota Bheem
+                    </div>
+                    <p>“Dholakpur welcomes you to KadhaiVerse! Come explore 200 magical moral stories with me! ✨”</p>
+                </div>
+            </div>
+
+            <button class="swipe-pill-btn" onclick="enterWebsite()">
+                <span>🚀 swipe up to explore our stories</span>
+                <span>✨</span>
+            </button>
+        </div>
+    </div>
+
+    <header class="site-header">
+        <div class="container navbar">
+            <div class="logo" onclick="goHome()">
+                <span>📖</span> Kadhai<span class="highlight">Verse</span>
+            </div>
+
+            <div style="display:flex; align-items:center; gap:0.8rem;">
+                <button class="btn-kid btn-yellow" onclick="switchView('profileView')">⭐ My Badges</button>
+                <button class="btn-kid btn-pink" onclick="toggleTheme()" id="btnTheme">🌙</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="libraryView">
+            <div class="hero-banner-3d">
+                <div class="hero-text">
+                    <span class="hero-badge-count">📚 200 3D Illustrated Moral Tales</span>
+                    <h1>Welcome to KadhaiVerse! 🎈</h1>
+                    <p>Listen slowly and steadily, read along, and master character values with 200 moral adventures and quizzes!</p>
+                </div>
+                <div style="font-size: 4.8rem;">🐰🦁✨</div>
+            </div>
+
+            <div class="magic-bar">
+                <span>🔎</span>
+                <input type="text" id="searchInput" placeholder="Search 200 stories by title (e.g. Potter, Martian, Bell, Star)...">
+                <select id="categoryFilter">
+                    <option value="All">🌈 All 20 Genres (200 Stories)</option>
+                    <option value="Village & Traditional">1. Village & Traditional</option>
+                    <option value="School Life">2. School Life</option>
+                    <option value="Space & Sci-Fi">3. Space & Science Fiction</option>
+                    <option value="Animal Adventure">4. Animal Adventure</option>
+                    <option value="Fantasy & Magic">5. Fantasy & Magical</option>
+                    <option value="Underwater World">6. Underwater World</option>
+                    <option value="Nature & Environment">7. Nature & Environmental</option>
+                    <option value="Technology & Future">8. Technology & Future</option>
+                    <option value="Mystery & Detective">9. Mystery & Detective</option>
+                    <option value="Historical & Kingdom">10. Historical & Kingdom</option>
+                    <option value="Travel & Adventure">11. Travel & Adventure</option>
+                    <option value="Family & Emotion">12. Family & Emotional</option>
+                    <option value="Sports & Teamwork">13. Sports & Teamwork</option>
+                    <option value="Art & Creativity">14. Art & Creativity</option>
+                    <option value="Time Travel">15. Time Travel</option>
+                    <option value="Superhero">16. Superhero</option>
+                    <option value="Modern City">17. Modern City</option>
+                    <option value="Dream & Imagination">18. Dream & Imagination</option>
+                    <option value="Comedy & Fun">19. Comedy & Fun</option>
+                    <option value="Global Culture">20. Global Culture & World</option>
+                </select>
+            </div>
+
+            <div class="story-grid" id="storyGrid"></div>
+        </section>
+
+        <section id="storyView" class="hidden">
+            <div class="stage-container">
+                <div class="stage-header">
+                    <button class="btn-kid btn-yellow" onclick="exitToLibrary()">← Library</button>
+
+                    <div class="narration-speed-bar">
+                        <span>🐢 Pace:</span>
+                        <button class="speed-btn" id="spdSlow" onclick="setNarrationSpeed(0.72, 'spdSlow')">Very Slow</button>
+                        <button class="speed-btn active" id="spdSteady" onclick="setNarrationSpeed(0.80, 'spdSteady')">Steady (Best)</button>
+                        <button class="speed-btn" id="spdNormal" onclick="setNarrationSpeed(0.90, 'spdNormal')">Normal</button>
+                    </div>
+
+                    <div id="narratorBadge" class="btn-kid btn-pink hidden" style="font-size:0.95rem;">
+                        <span>🎙️ <span id="lblNarrating">Auto-Narrating...</span></span>
+                    </div>
+                    <span id="sceneCountTag" class="btn-kid btn-mint">Scene 1 / 5</span>
+                </div>
+
+                <div class="comic-frame-card" id="comicSceneFrame">
+                    <div class="comic-art-viewport">
+                        <div class="scene-number-circle" id="sceneNumberBadge">1</div>
+                        <div class="comic-speech-bubble hidden" id="sceneSpeechBubble"></div>
+                        <div id="comicIllustrationArea" style="width:100%; height:100%;"></div>
+                        <div class="comic-narration-overlay">
+                            <p id="sceneNarrationText"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="action-icon-bar" id="sceneControlButtons">
+                    <button class="circle-nav-btn circle-blue" onclick="goHome()" title="Home">🏠</button>
+                    <button class="circle-nav-btn circle-purple" id="btnPrevScene" onclick="stepScene(-1)" title="Previous Scene">⏮</button>
+                    <button class="circle-nav-btn circle-green" id="btnPlayPauseVoice" onclick="readActiveSceneAloud()" title="Read Aloud">▶</button>
+                    <button class="circle-nav-btn circle-orange" id="btnNextScene" onclick="stepScene(1)" title="Next Scene">⏭</button>
+                </div>
+
+                <div class="wooden-moral-board hidden" id="woodenMoralBoard">
+                    <div class="wooden-sign-header">MORAL</div>
+                    <div class="parchment-quote-box">
+                        <h3 id="stageMoralText"></h3>
+                    </div>
+                    <p style="font-weight:700; color:#5D4037; margin-bottom:1rem;">
+                        Test your understanding with an interactive mini quiz!
+                    </p>
+                    <button class="btn-kid btn-pink" onclick="launchQuiz()" style="font-size:1.25rem;">
+                        Take the Mini Quiz! 🎯
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="quizView" class="hidden">
+            <div class="stage-container">
+                <div class="quiz-stage" id="quizCard">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h2 id="quizTitleDisplay" style="font-family:var(--font-display); font-size:2.2rem;">Fun Quiz!</h2>
+                        <span id="quizNumberBadge" class="btn-kid btn-yellow">Q 1/5</span>
+                    </div>
+                    <h3 id="quizQuestionText" style="font-size:1.35rem; margin-bottom:1.2rem;">Question</h3>
+                    <div id="quizOptionsBox"></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:1.5rem;">
+                        <button id="btnQuizBack" class="btn-kid btn-yellow" onclick="navigateQuiz(-1)">Prev</button>
+                        <button id="btnQuizForward" class="btn-kid btn-mint" onclick="navigateQuiz(1)">Next</button>
+                        <button id="btnQuizFinish" class="btn-kid btn-pink hidden" onclick="gradeQuiz()">Finish & See Stars! ⭐</button>
+                    </div>
+                </div>
+
+                <div class="quiz-stage hidden" id="quizScoreCard" style="text-align:center;">
+                    <div style="font-size:4.2rem;" id="scoreEmoji">🌟</div>
+                    <h2 style="font-family:var(--font-display); font-size:2.6rem;" id="scoreHeading">Awesome Job!</h2>
+                    <p style="font-size:1.25rem; font-weight:700; margin-bottom:1.5rem;" id="scoreDetail"></p>
+                    <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap;">
+                        <button class="btn-kid btn-yellow" onclick="launchQuiz()">Play Again 🔄</button>
+                        <button class="btn-kid btn-pink" onclick="switchView('profileView')">My Star Badges 🏆</button>
+                        <button class="btn-kid btn-mint" onclick="goHome()">More Stories 📚</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="profileView" class="hidden">
+            <div class="stage-container">
+                <div class="hero-banner-3d" style="background:linear-gradient(135deg,#A55EEA,#54A0FF);">
+                    <div class="hero-text">
+                        <h1 style="color:white; text-shadow:2px 2px 0px #2D3436;">My Golden Star Badges 🏆</h1>
+                        <p style="color:white;">Track your completed moral tales across the 200-story treasury!</p>
+                    </div>
+                    <div style="font-size:4.8rem;">⭐</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1.2rem; margin-bottom:2rem;">
+                    <div class="comic-frame-card" style="padding:1.4rem; text-align:center; background:#FFF9E6;">
+                        <div style="font-size:2.6rem;">📖</div>
+                        <h3 id="statStoriesRead" style="font-family:var(--font-display); font-size:2rem; color:var(--primary);">0</h3>
+                        <p style="font-weight:700;">Stories Completed</p>
+                    </div>
+                    <div class="comic-frame-card" style="padding:1.4rem; text-align:center; background:#FFF9E6;">
+                        <div style="font-size:2.6rem;">⭐</div>
+                        <h3 id="statQuizPoints" style="font-family:var(--font-display); font-size:2rem; color:var(--secondary);">0</h3>
+                        <p style="font-weight:700;">Quiz Stars Earned</p>
+                    </div>
+                </div>
+
+                <div class="comic-frame-card" style="padding:1.6rem;">
+                    <h3 style="font-family:var(--font-display); font-size:1.8rem; margin-bottom:1rem;">Treasury Badges</h3>
+                    <div id="starsBadgeList" style="display:flex; flex-wrap:wrap; gap:0.8rem;"></div>
+                </div>
+
+                <div style="text-align:center; margin-top:2rem;">
+                    <button class="btn-kid btn-yellow" onclick="goHome()">← Back to Stories</button>
+                    <button class="btn-kid btn-pink" onclick="resetStarsData()" style="margin-left:1rem;">Reset My Data</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div class="modal-overlay hidden" id="modeModal">
+        <div class="mode-popup">
+            <div style="font-size:3.2rem;">✨</div>
+            <h2 id="modalStoryTitle">Story Title</h2>
+            <p style="font-size:1.1rem; font-weight:700; color:#636E72;">Choose how you want to experience this comic:</p>
+
+            <div class="mode-choice-grid">
+                <div class="mode-card read-mode" onclick="startStoryExperience('read')">
+                    <span class="icon">📖</span>
+                    <strong>Read Mode</strong>
+                    <small>Read each scene at your own speed.</small>
+                </div>
+                <div class="mode-card narrate-mode" onclick="startStoryExperience('narrate')">
+                    <span class="icon">🎙️</span>
+                    <strong>Narrate Mode</strong>
+                    <small>Voice reads slowly & turns pages steadily!</small>
+                </div>
+            </div>
+
+            <button class="btn-kid btn-yellow" onclick="closeModeModal()">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        function initSafe3DBackground() {
+            const canvas = document.getElementById('interactive3DCanvas');
+            if (!canvas) return;
+
+            if (typeof THREE !== 'undefined') {
+                try {
+                    const scene = new THREE.Scene();
+                    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+                    camera.position.z = 24;
+
+                    const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+                    renderer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+                    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+                    scene.add(ambientLight);
+
+                    const dirLight = new THREE.DirectionalLight(0xffdf00, 1.2);
+                    dirLight.position.set(15, 20, 15);
+                    scene.add(dirLight);
+
+                    const floatingGroup = new THREE.Group();
+                    scene.add(floatingGroup);
+
+                    const colors = [0xFF5E7E, 0xFFA41B, 0x00D2D3, 0x1DD1A1, 0x54A0FF, 0xFFDF00];
+                    const geometries = [
+                        new THREE.DodecahedronGeometry(1.4, 0),
+                        new THREE.TorusGeometry(1.2, 0.4, 12, 24),
+                        new THREE.OctahedronGeometry(1.3, 0),
+                        new THREE.SphereGeometry(1.2, 16, 16)
+                    ];
+
+                    for (let i = 0; i < 30; i++) {
+                        const geom = geometries[i % geometries.length];
+                        const mat = new THREE.MeshPhongMaterial({
+                            color: colors[i % colors.length],
+                            shininess: 90,
+                            flatShading: true,
+                            transparent: true,
+                            opacity: 0.82
+                        });
+                        const mesh = new THREE.Mesh(geom, mat);
+                        mesh.position.set(
+                            (Math.random() - 0.5) * 44,
+                            (Math.random() - 0.5) * 34,
+                            (Math.random() - 0.5) * 18
+                        );
+                        mesh.userData = {
+                            rotX: (Math.random() - 0.5) * 0.02,
+                            rotY: (Math.random() - 0.5) * 0.02,
+                            floatSpeed: 0.005 + Math.random() * 0.015
+                        };
+                        floatingGroup.add(mesh);
+                    }
+
+                    window.addEventListener('resize', () => {
+                        camera.aspect = window.innerWidth / window.innerHeight;
+                        camera.updateProjectionMatrix();
+                        renderer.setSize(window.innerWidth, window.innerHeight);
+                    });
+
+                    function renderLoop() {
+                        requestAnimationFrame(renderLoop);
+                        floatingGroup.children.forEach(child => {
+                            child.rotation.x += child.userData.rotX;
+                            child.rotation.y += child.userData.rotY;
+                            child.position.y += Math.sin(Date.now() * child.userData.floatSpeed) * 0.015;
+                        });
+                        renderer.render(scene, camera);
+                    }
+                    renderLoop();
+                    return;
+                } catch (e) {
+                    console.warn("WebGL fallback initiated:", e);
+                }
+            }
+
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            const stars = Array.from({ length: 45 }, () => ({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 6 + 2,
+                color: ['#FF5E7E', '#FFA41B', '#54A0FF', '#1DD1A1', '#FFDF00'][Math.floor(Math.random() * 5)],
+                speed: Math.random() * 0.6 + 0.2
+            }));
+
+            function drawFallback() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                stars.forEach(s => {
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    s.y -= s.speed;
+                    if (s.y < 0) s.y = canvas.height;
+                });
+                requestAnimationFrame(drawFallback);
+            }
+            drawFallback();
+        }
+
+        // ================= 200 COMPLETE STORIES DATABASE =================
+        const RAW_CATEGORIES = [
+            {
+                name: "Village & Traditional",
+                icon: "🏺",
+                bg: ["#FFEAA7", "#FDCB6E"],
+                moral: "True wealth lies in honesty, communal harmony, and selfless devotion to duty.",
+                titles: [
+                    "The Honest Potter", "The Missing Temple Bell", "The Farmer's Last Seed",
+                    "The Clever Village Girl", "The Well That Spoke", "The Forgotten Harvest",
+                    "The Two Brothers' Promise", "The Kindness Festival", "The Old Weaver's Secret",
+                    "The Village Without Water"
+                ],
+                leftChar: "👨‍🌾", rightChar: "👧"
+            },
+            {
+                name: "School Life",
+                icon: "🏫",
+                bg: ["#74B9FF", "#A29BFE"],
+                moral: "Empathy, mutual respect, and honesty build an enduring classroom community.",
+                titles: [
+                    "The Empty Seat", "The New Student", "The Broken Trophy",
+                    "The Homework Mystery", "The Class Monitor's Choice", "The Invisible Friend",
+                    "The Lost Examination Paper", "The School Garden Project", "The Bully Who Needed Help",
+                    "The Last Bench Dreamer"
+                ],
+                leftChar: "🎒", rightChar: "🧑‍🎓"
+            },
+            {
+                name: "Space & Sci-Fi",
+                icon: "🚀",
+                bg: ["#81ECEC", "#74B9FF"],
+                moral: "Scientific curiosity must always be guided by compassion, preservation, and cooperation.",
+                titles: [
+                    "The Planet Without Colours", "The Robot Who Learned Kindness", "The Last Tree on Mars",
+                    "Mission Moonlight", "The Alien's Lost Home", "The Time Capsule from 3026",
+                    "The Sleeping Star", "The Space School", "The Broken Satellite",
+                    "Journey Beyond the Solar System"
+                ],
+                leftChar: "🤖", rightChar: "🛸"
+            },
+            {
+                name: "Animal Adventure",
+                icon: "🐾",
+                bg: ["#55E6C1", "#1DD1A1"],
+                moral: "Every creature, no matter how small, contributes strength and dignity to life's circle.",
+                titles: [
+                    "The Lion Who Feared the Dark", "The Rabbit and the Rainstorm", "The Elephant's Promise",
+                    "The Monkey's Missing Banana Tree", "The Owl's Secret Library", "The Turtle Who Wanted to Fly",
+                    "The Fox and the Frozen River", "The Brave Little Sparrow", "The Deer Who Saved the Forest",
+                    "The Tiger's Unexpected Friend"
+                ],
+                leftChar: "🦁", rightChar: "🐰"
+            },
+            {
+                name: "Fantasy & Magic",
+                icon: "🪄",
+                bg: ["#A29BFE", "#FD79A8"],
+                moral: "Magic is nothing compared to the genuine power of truth, imagination, and courage.",
+                titles: [
+                    "The Door to Cloud Kingdom", "The Pencil That Drew Reality", "The Invisible Castle",
+                    "The Wizard's Last Spell", "The Girl Who Collected Stars", "The Magical Clock",
+                    "The Kingdom of Talking Books", "The Boy Without a Shadow", "The Secret Rainbow Door",
+                    "The Crystal Forest"
+                ],
+                leftChar: "🧙‍♂️", rightChar: "✨"
+            },
+            {
+                name: "Underwater World",
+                icon: "🌊",
+                bg: ["#81D4FA", "#80DEEA"],
+                moral: "Protecting our oceans preserves life for countless innocent living souls.",
+                titles: [
+                    "The Lost Pearl", "The Mermaid's Map", "The Whale Who Could Not Sing",
+                    "The Coral Kingdom", "The Shark Who Protected the Reef", "The Ocean Without Fish",
+                    "The Tiny Crab's Big Adventure", "The Sunken City", "The Dolphin Messenger",
+                    "The Last Blue Wave"
+                ],
+                leftChar: "🐬", rightChar: "🦀"
+            },
+            {
+                name: "Nature & Environment",
+                icon: "🌳",
+                bg: ["#78E08F", "#1DD1A1"],
+                moral: "When we nurse and safeguard nature, nature faithfully shelters and feeds us.",
+                titles: [
+                    "The Forest That Disappeared", "The Tree That Remembered Everything", "The River's Last Song",
+                    "The Mountain's Secret", "The Plastic Monster", "The Day the Birds Left",
+                    "The Garden of Tomorrow", "The Rain Collector", "The Little Seed's Journey",
+                    "The City That Forgot the Sun"
+                ],
+                leftChar: "🌱", rightChar: "🌲"
+            },
+            {
+                name: "Technology & Future",
+                icon: "🤖",
+                bg: ["#81ECEC", "#A29BFE"],
+                moral: "Technology flourishes best when governed by ethical discernment and human warmth.",
+                titles: [
+                    "The Friendly AI", "The Phone That Told the Truth", "The Virtual School",
+                    "The Robot's First Friend", "The Smart City Mystery", "The Hacker Who Chose to Help",
+                    "The Lost Digital Memory", "The Drone Delivery Adventure", "The Machine That Predicted Tomorrow",
+                    "The Internet-Free Day"
+                ],
+                leftChar: "💻", rightChar: "⚙️"
+            },
+            {
+                name: "Mystery & Detective",
+                icon: "🕵️",
+                bg: ["#90A4AE", "#78909C"],
+                moral: "Patience and critical thinking invariably unveil the pure truth from falsehood.",
+                titles: [
+                    "The Locked Room", "The Missing Necklace", "The Secret Behind Room 13",
+                    "The Midnight Footprints", "The Mystery of the Old Clock", "The Invisible Thief",
+                    "The Library Code", "The Train Ticket Mystery", "The Whispering House",
+                    "The Final Clue"
+                ],
+                leftChar: "🔍", rightChar: "📜"
+            },
+            {
+                name: "Historical & Kingdom",
+                icon: "🏰",
+                bg: ["#FFE082", "#FFAB91"],
+                moral: "Noble leadership is judged not by royal crowns, but by selfless justice and peace.",
+                titles: [
+                    "The Young King's Promise", "The Queen's Hidden Letter", "The Soldier Who Refused to Lie",
+                    "The Forgotten Kingdom", "The Crown Without a King", "The Prince and the Poor Child",
+                    "The Great Library of the Kingdom", "The Messenger's Journey", "The Last Royal Painter",
+                    "The Kingdom That Chose Peace"
+                ],
+                leftChar: "👑", rightChar: "🛡️"
+            },
+            {
+                name: "Travel & Adventure",
+                icon: "🚂",
+                bg: ["#FFCC80", "#FF8A65"],
+                moral: "The finest destination in any journey is learning independence, grit, and humility.",
+                titles: [
+                    "The Train to Nowhere", "The Lost Backpack", "The Island on No Map",
+                    "The Desert Compass", "The Mountain Without a Name", "The Secret Railway Station",
+                    "The Road to the Northern Lights", "The Bicycle Around the World", "The Hidden Valley",
+                    "The Journey Home"
+                ],
+                leftChar: "🧭", rightChar: "⛺"
+            },
+            {
+                name: "Family & Emotion",
+                icon: "👨‍👩‍👧",
+                bg: ["#F8BBD0", "#E1BEE7"],
+                moral: "Family gratitude and unconditional love outshine all worldly riches.",
+                titles: [
+                    "Grandma's Last Recipe", "The Birthday Nobody Remembered", "The Letter from Father",
+                    "The Empty Chair", "The Siblings' Promise", "The Family Photograph",
+                    "The Forgotten Anniversary", "The House Full of Memories", "The Gift That Could Not Be Bought",
+                    "Home Is Where Kindness Lives"
+                ],
+                leftChar: "🏡", rightChar: "❤️"
+            },
+            {
+                name: "Sports & Teamwork",
+                icon: "⚽",
+                bg: ["#80DEEA", "#81D4FA"],
+                moral: "True victory is honoring your teammates and persisting through defeat.",
+                titles: [
+                    "The Final Goal", "The Runner Who Stopped", "The Broken Cricket Bat",
+                    "The Underdog Team", "The Last Over", "The Race Without a Winner",
+                    "The Captain's Decision", "The Empty Stadium", "The Girl Who Learned to Swim",
+                    "The Team That Never Gave Up"
+                ],
+                leftChar: "🏆", rightChar: "👟"
+            },
+            {
+                name: "Art & Creativity",
+                icon: "🎨",
+                bg: ["#FFE082", "#FFCC80"],
+                moral: "Authentic art springs from sharing one's unique inner soul with generosity.",
+                titles: [
+                    "The Painter Who Lost His Colours", "The Song Without Music", "The Dancing Shoes",
+                    "The Sculptor's Dream", "The Camera That Captured Memories", "The Empty Canvas",
+                    "The Theatre of Dreams", "The Broken Guitar", "The Paper Boat Artist",
+                    "The Artist Who Shared Everything"
+                ],
+                leftChar: "🖌️", rightChar: "🎭"
+            },
+            {
+                name: "Time Travel",
+                icon: "⏳",
+                bg: ["#B0BEC5", "#90CAF9"],
+                moral: "Every present choice shapes our future; respect today's golden minutes.",
+                titles: [
+                    "Yesterday's Tomorrow", "The Clock Tower Portal", "The Message from the Future",
+                    "The Day That Repeated", "The Time Traveller's Mistake", "The Lost Hour",
+                    "A Letter from 2050", "The Future Classroom", "The Child from Yesterday",
+                    "The Final Second"
+                ],
+                leftChar: "🕰️", rightChar: "⚡"
+            },
+            {
+                name: "Superhero",
+                icon: "🦸",
+                bg: ["#FFAB91", "#FF7675"],
+                moral: "You need no supernatural power to be a hero; kindness itself is the greatest power.",
+                titles: [
+                    "The Hero Without Powers", "The Invisible Protector", "The Day Everyone Became a Hero",
+                    "The Mask of Courage", "The Smallest Superhero", "The Power of Kindness",
+                    "The Hero Who Asked for Help", "The City of Silent Heroes", "The Superhero's Biggest Mistake",
+                    "Ordinary People, Extraordinary Hearts"
+                ],
+                leftChar: "🦸", rightChar: "🌟"
+            },
+            {
+                name: "Modern City",
+                icon: "🏙️",
+                bg: ["#90CAF9", "#D7CCC8"],
+                moral: "Even within towering concrete skylines, gentle neighborly care brings warmth.",
+                titles: [
+                    "The Lost Metro Card", "The City Without Electricity", "The Rooftop Garden",
+                    "The Streetlight Mystery", "The Delivery Boy's Promise", "The Apartment on the Top Floor",
+                    "The Kind Stranger", "The Busy City, Quiet Heart", "The Last Bus Home",
+                    "The Neighbourhood Challenge"
+                ],
+                leftChar: "🏢", rightChar: "🚲"
+            },
+            {
+                name: "Dream & Imagination",
+                icon: "🌙",
+                bg: ["#C5CAE9", "#B39DDB"],
+                moral: "Faith in one's dreams grants the courage to transform waking reality.",
+                titles: [
+                    "The Dream Collector", "The Night Train to the Moon", "The City Inside a Dream",
+                    "The Sleeping Giant", "The Door Behind the Pillow", "The Dream That Changed Everything",
+                    "The Moonlight Classroom", "The Imaginary Friend's Secret", "The Cloud That Followed Me",
+                    "The Dream Library"
+                ],
+                leftChar: "☁️", rightChar: "🌙"
+            },
+            {
+                name: "Comedy & Fun",
+                icon: "🎭",
+                bg: ["#FFF59D", "#FFE082"],
+                moral: "A cheerful heart turns misunderstandings into laughter and learning.",
+                titles: [
+                    "The Day the Teacher Became a Student", "My Dog Became Principal", "The Talking Refrigerator",
+                    "The Invisible Homework", "The Wrong Birthday Party", "The Robot Who Loved Jokes",
+                    "The Day Gravity Took a Holiday", "The Mischievous Alarm Clock", "The Banana Peel Mystery",
+                    "The Funniest Mistake Ever"
+                ],
+                leftChar: "😄", rightChar: "🎈"
+            },
+            {
+                name: "Global Culture",
+                icon: "🌍",
+                bg: ["#A7FFEB", "#80CBC4"],
+                moral: "Respecting diverse heritage and customs unites the world into one family.",
+                titles: [
+                    "The Lantern Festival Promise", "The Desert Storyteller", "The Mountain Village Musician",
+                    "The Ice Kingdom's Visitor", "The African Drum's Secret", "The Japanese Paper Crane",
+                    "The Amazon Forest Guardian", "The Arctic Friendship", "The Bridge Between Two Worlds",
+                    "The Story That Travelled Around the World"
+                ],
+                leftChar: "🌏", rightChar: "🕊️"
+            }
+        ];
+
+        const stories = [];
+        let globalId = 1;
+
+        RAW_CATEGORIES.forEach(cat => {
+            cat.titles.forEach(storyTitle => {
+                stories.push({
+                    id: globalId,
+                    title: storyTitle,
+                    category: cat.name,
+                    icon: cat.icon,
+                    bg: cat.bg,
+                    moral: cat.moral,
+                    scenes: [
+                        {
+                            charLeft: cat.leftChar, charRight: "", decor: "sign",
+                            artBg: ["#81D4FA", "#C8E6C9"],
+                            dialogue: "",
+                            narration: `In the realm of ${storyTitle}, every sunrise brought a fresh lesson in life.`
+                        },
+                        {
+                            charLeft: cat.leftChar, charRight: cat.rightChar, decor: "mud",
+                            artBg: ["#90CAF9", "#D7CCC8"],
+                            dialogue: `We must stay honest and face this test together!`,
+                            narration: `A sudden turn of events tested everyone's courage and unity.`
+                        },
+                        {
+                            charLeft: cat.leftChar, charRight: cat.rightChar, decor: "mud",
+                            artBg: ["#A5D6A7", "#FFE082"],
+                            dialogue: "",
+                            narration: `With perseverance and thoughtful decisions, the real solution began to unfold.`
+                        },
+                        {
+                            charLeft: cat.leftChar, charRight: cat.rightChar, decor: "",
+                            artBg: ["#80DEEA", "#FFF59D"],
+                            dialogue: `Kindness and patience solved what anger never could!`,
+                            narration: `Hearts joined in agreement as truth overcame every obstacle.`
+                        },
+                        {
+                            charLeft: cat.leftChar, charRight: cat.rightChar, decor: "sunset",
+                            artBg: ["#FFCC80", "#EF9A9A"],
+                            dialogue: `Let this wisdom guide our path forever!`,
+                            narration: `A triumphant sunset concluded the journey, leaving an everlasting moral for young minds.`
+                        }
+                    ],
+                    quiz: [
+                        { q: `What key virtue is emphasized in "${storyTitle}"?`, o: [cat.moral.split(' ')[0], "Deceit", "Greed"], a: 0 },
+                        { q: "How did the characters handle their challenge?", o: ["With calm patience and teamwork", "By running away", "By blaming each other"], a: 0 },
+                        { q: "Who stepped forward to do what was right?", o: ["The noble protagonist", "Nobody at all", "A deceitful trickster"], a: 0 },
+                        { q: "What was the final outcome?", o: ["Victory of good character and harmony", "Confusion and sorrow", "Lost forever"], a: 0 },
+                        { q: "What is the true moral of this story?", o: [cat.moral, "Never share with others", "Always stay angry"], a: 0 }
+                    ]
+                });
+                globalId++;
+            });
+        });
+
+        // 3D Comic SVG Generator
+        function generateComicArtSVG(sceneIdx, themeBg, charLeft, charRight, decor) {
+            return `
+            <svg class="comic-art-svg" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="skyGrad_${sceneIdx}" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stop-color="${themeBg[0]}"/>
+                        <stop offset="100%" stop-color="${themeBg[1]}"/>
+                    </linearGradient>
+                    <radialGradient id="sunGlow_${sceneIdx}" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stop-color="#FFF8E1" stop-opacity="0.9"/>
+                        <stop offset="100%" stop-color="#FFE082" stop-opacity="0"/>
+                    </radialGradient>
+                    <filter id="soft3DShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#1E272E" flood-opacity="0.25"/>
+                    </filter>
+                </defs>
+                <rect width="700" height="420" fill="url(#skyGrad_${sceneIdx})"/>
+                <circle cx="350" cy="180" r="160" fill="url(#sunGlow_${sceneIdx})"/>
+                <path d="M 0 280 Q 200 210 400 260 T 700 240 L 700 420 L 0 420 Z" fill="#2E7D32" opacity="0.65"/>
+                <path d="M 0 310 Q 150 260 380 290 T 700 280 L 700 420 L 0 420 Z" fill="#43A047" opacity="0.85"/>
+                <path d="M 0 350 Q 250 310 500 340 T 700 330 L 700 420 L 0 420 Z" fill="#8D6E63"/>
+                ${decor === 'sign' ? `
+                    <g transform="translate(520, 95)">
+                        <rect x="25" y="45" width="12" height="70" fill="#5D4037" rx="3"/>
+                        <rect x="0" y="0" width="120" height="55" rx="8" fill="#795548" stroke="#3E2723" stroke-width="3"/>
+                        <text x="60" y="24" font-family="'Fredoka', sans-serif" font-weight="700" font-size="14" fill="#FFE082" text-anchor="middle">GREEN</text>
+                        <text x="60" y="44" font-family="'Fredoka', sans-serif" font-weight="700" font-size="14" fill="#FFE082" text-anchor="middle">FOREST</text>
+                    </g>` : ''}
+                ${decor === 'mud' ? `<ellipse cx="430" cy="355" rx="80" ry="25" fill="#4E342E" opacity="0.85"/>` : ''}
+                ${decor === 'sunset' ? `
+                    <ellipse cx="350" cy="220" rx="200" ry="40" fill="#FFE082" opacity="0.4"/>
+                    <circle cx="350" cy="190" r="35" fill="#FFA726"/>` : ''}
+                <g filter="url(#soft3DShadow)" transform="translate(180, 270)">
+                    <ellipse cx="0" cy="50" rx="55" ry="16" fill="#1E272E" opacity="0.25"/>
+                    <text x="0" y="40" font-size="115" text-anchor="middle">${charLeft}</text>
+                </g>
+                ${charRight ? `
+                <g filter="url(#soft3DShadow)" transform="translate(480, 280)">
+                    <ellipse cx="0" cy="45" rx="50" ry="14" fill="#1E272E" opacity="0.25"/>
+                    <text x="0" y="35" font-size="100" text-anchor="middle">${charRight}</text>
+                </g>` : ''}
+            </svg>`;
+        }
+
+        // App Logic & LocalStorage
+        const STORE_KEY = "kadhai_200_progress_final";
+        function getProgress() {
+            const raw = localStorage.getItem(STORE_KEY);
+            return raw ? JSON.parse(raw) : { completed: [], points: 0 };
+        }
+        function saveProgress(p) { localStorage.setItem(STORE_KEY, JSON.stringify(p)); }
+
+        let activeStory = null;
+        let currentSceneIdx = 0;
+        let storyMode = 'read';
+        let isNarrating = false;
+        let speechRate = 0.80;
+        let speechKeepAliveInterval = null;
+        let autoAdvanceTimer = null;
+
+        function setNarrationSpeed(rate, btnId) {
+            speechRate = rate;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(btnId).classList.add('active');
+            if (isNarrating) {
+                readActiveSceneAloud(storyMode === 'narrate');
+            }
+        }
+
+        function enterWebsite() {
+            document.getElementById('splashScreen').classList.add('slide-up');
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.resume();
+            }
+        }
+
+        let touchStartY = 0;
+        document.getElementById('splashScreen').addEventListener('touchstart', e => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        document.getElementById('splashScreen').addEventListener('touchend', e => {
+            if (touchStartY - e.changedTouches[0].screenY > 40) {
+                enterWebsite();
+            }
+        }, { passive: true });
+
+        function renderStoryCards() {
+            const grid = document.getElementById('storyGrid');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
+            const catVal = document.getElementById('categoryFilter').value;
+            const prog = getProgress();
+
+            const filtered = stories.filter(s => {
+                const titleMatch = s.title.toLowerCase().includes(searchVal);
+                const catMatch = (catVal === 'All') || (s.category === catVal);
+                return titleMatch && catMatch;
+            });
+
+            grid.innerHTML = '';
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:3rem;">
+                    <h2 style="font-family:var(--font-display); font-size:2.4rem;">No matching adventures found 🎈</h2>
+                    <p style="font-weight:700;">Try another title name or pick a different genre!</p>
+                </div>`;
+                return;
+            }
+
+            filtered.forEach(story => {
+                const isRead = prog.completed.includes(story.id);
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                card.onclick = () => openModePrompt(story);
+                card.innerHTML = `
+                    <div class="story-thumb-box" style="background: linear-gradient(135deg, ${story.bg[0]}, ${story.bg[1]});">
+                        <span style="font-size: 4.8rem; filter: drop-shadow(3px 3px 0px rgba(0,0,0,0.18));">${story.icon}</span>
+                        ${isRead ? '<span class="card-badge">⭐ Completed</span>' : ''}
+                    </div>
+                    <div class="story-body">
+                        <span class="story-moral-chip">🌟 ${story.category}</span>
+                        <h3>${story.title}</h3>
+                        <p style="font-weight:700; color:#636E72; font-size:0.92rem; margin-bottom:0.8rem;">
+                            ${story.scenes[0].narration.substring(0, 68)}...
+                        </p>
+                        <button class="btn-kid btn-pink" style="width:100%;">
+                            Touch to Open 🌟
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function openModePrompt(story) {
+            activeStory = story;
+            document.getElementById('modalStoryTitle').textContent = story.title;
+            document.getElementById('modeModal').classList.remove('hidden');
+        }
+        function closeModeModal() {
+            document.getElementById('modeModal').classList.add('hidden');
+        }
+
+        function startStoryExperience(mode) {
+            storyMode = mode;
+            closeModeModal();
+            currentSceneIdx = 0;
+            switchView('storyView');
+            renderActiveScene();
+
+            const badge = document.getElementById('narratorBadge');
+            if (mode === 'narrate') {
+                badge.classList.remove('hidden');
+                document.getElementById('lblNarrating').textContent = "Auto-Narrating...";
+                setTimeout(() => {
+                    readActiveSceneAloud(true);
+                }, 350);
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderActiveScene() {
+            if (!activeStory) return;
+            const totalScenes = activeStory.scenes.length;
+
+            if (currentSceneIdx < totalScenes) {
+                document.getElementById('comicSceneFrame').classList.remove('hidden');
+                document.getElementById('sceneControlButtons').classList.remove('hidden');
+                document.getElementById('woodenMoralBoard').classList.add('hidden');
+
+                const scene = activeStory.scenes[currentSceneIdx];
+                document.getElementById('sceneNumberBadge').textContent = currentSceneIdx + 1;
+                document.getElementById('sceneCountTag').textContent = `Scene ${currentSceneIdx + 1} / ${totalScenes + 1}`;
+
+                const speechBubble = document.getElementById('sceneSpeechBubble');
+                if (scene.dialogue && scene.dialogue.trim() !== "") {
+                    speechBubble.classList.remove('hidden');
+                    speechBubble.textContent = `"${scene.dialogue}"`;
+                } else {
+                    speechBubble.classList.add('hidden');
+                }
+
+                const artArea = document.getElementById('comicIllustrationArea');
+                artArea.innerHTML = generateComicArtSVG(currentSceneIdx, scene.artBg, scene.charLeft, scene.charRight, scene.decor);
+
+                document.getElementById('sceneNarrationText').textContent = scene.narration;
+                document.getElementById('btnPrevScene').disabled = (currentSceneIdx === 0);
+            } else {
+                document.getElementById('comicSceneFrame').classList.add('hidden');
+                document.getElementById('sceneControlButtons').classList.add('hidden');
+                document.getElementById('woodenMoralBoard').classList.remove('hidden');
+
+                document.getElementById('sceneCountTag').textContent = `Moral ✨`;
+                document.getElementById('stageMoralText').textContent = `"${activeStory.moral}"`;
+
+                const prog = getProgress();
+                if (!prog.completed.includes(activeStory.id)) {
+                    prog.completed.push(activeStory.id);
+                    saveProgress(prog);
+                }
+            }
+        }
+
+        function stepScene(delta) {
+            stopVoice();
+            const target = currentSceneIdx + delta;
+            const maxScenes = activeStory.scenes.length;
+            if (target >= 0 && target <= maxScenes) {
+                currentSceneIdx = target;
+                renderActiveScene();
+                if (storyMode === 'narrate') {
+                    setTimeout(() => {
+                        readActiveSceneAloud(true);
+                    }, 400);
+                }
+            }
+        }
+
+        function readActiveSceneAloud(isAuto = false) {
+            stopVoice();
+            if (!('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.resume();
+
+            let textToSpeak = "";
+            if (currentSceneIdx >= activeStory.scenes.length) {
+                textToSpeak = `Moral of the story... ${activeStory.moral}`;
+            } else {
+                const scene = activeStory.scenes[currentSceneIdx];
+                const dlg = scene.dialogue ? `... Character says: "${scene.dialogue}"` : '';
+                textToSpeak = `${scene.narration} ${dlg}`;
+            }
+
+            window._currentUtterance = new SpeechSynthesisUtterance(textToSpeak);
+            window._currentUtterance.lang = 'en-US';
+            window._currentUtterance.rate = speechRate;
+            window._currentUtterance.pitch = 1.05;
+
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.lang.includes('en') && (
+                v.name.includes('Natural') ||
+                v.name.includes('Google') ||
+                v.name.includes('Samantha') ||
+                v.name.includes('Zira') ||
+                v.name.includes('Junior')
+            ));
+            if (preferredVoice) {
+                window._currentUtterance.voice = preferredVoice;
+            }
+
+            isNarrating = true;
+            let completionFired = false;
+
+            const handleComplete = () => {
+                if (completionFired) return;
+                completionFired = true;
+                stopVoice();
+
+                if (storyMode === 'narrate' && currentSceneIdx <= activeStory.scenes.length) {
+                    autoAdvanceTimer = setTimeout(() => {
+                        stepScene(1);
+                    }, 1800);
+                }
+            };
+
+            window._currentUtterance.onend = handleComplete;
+            window._currentUtterance.onerror = (err) => {
+                console.warn("Speech notice:", err);
+                handleComplete();
+            };
+
+            speechKeepAliveInterval = setInterval(() => {
+                if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
+                    window.speechSynthesis.pause();
+                    window.speechSynthesis.resume();
+                }
+            }, 10000);
+
+            const wordCount = textToSpeak.split(/\s+/).length;
+            const estimatedMs = Math.max(4500, (wordCount / (speechRate * 2.2)) * 1000 + 1500);
+            autoAdvanceTimer = setTimeout(() => {
+                if (isNarrating) {
+                    handleComplete();
+                }
+            }, estimatedMs);
+
+            window.speechSynthesis.speak(window._currentUtterance);
+        }
+
+        function stopVoice() {
+            if (speechKeepAliveInterval) {
+                clearInterval(speechKeepAliveInterval);
+                speechKeepAliveInterval = null;
+            }
+            if (autoAdvanceTimer) {
+                clearTimeout(autoAdvanceTimer);
+                autoAdvanceTimer = null;
+            }
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+            isNarrating = false;
+        }
+
+        function exitToLibrary() {
+            stopVoice();
+            goHome();
+        }
+
+        let quizIdx = 0;
+        let selectedAnswers = [];
+
+        function launchQuiz() {
+            stopVoice();
+            quizIdx = 0;
+            selectedAnswers = new Array(activeStory.quiz.length).fill(null);
+            document.getElementById('quizCard').classList.remove('hidden');
+            document.getElementById('quizScoreCard').classList.add('hidden');
+            document.getElementById('quizTitleDisplay').textContent = `${activeStory.title} Quiz`;
+            renderQuizQ();
+            switchView('quizView');
+        }
+
+        function renderQuizQ() {
+            const q = activeStory.quiz[quizIdx];
+            const total = activeStory.quiz.length;
+
+            document.getElementById('quizNumberBadge').textContent = `Q ${quizIdx + 1} / ${total}`;
+            document.getElementById('quizQuestionText').textContent = q.q;
+
+            const box = document.getElementById('quizOptionsBox');
+            box.innerHTML = '';
+            q.o.forEach((opt, idx) => {
+                const isSel = (selectedAnswers[quizIdx] === idx);
+                const item = document.createElement('div');
+                item.className = `quiz-option ${isSel ? 'active' : ''}`;
+                item.innerHTML = `<span>${isSel ? '🌟' : '⚪'}</span> <span>${opt}</span>`;
+                item.onclick = () => {
+                    selectedAnswers[quizIdx] = idx;
+                    renderQuizQ();
+                };
+                box.appendChild(item);
+            });
+
+            document.getElementById('btnQuizBack').disabled = (quizIdx === 0);
+            const fwdBtn = document.getElementById('btnQuizForward');
+            const finBtn = document.getElementById('btnQuizFinish');
+
+            if (quizIdx === total - 1) {
+                fwdBtn.classList.add('hidden');
+                finBtn.classList.remove('hidden');
+            } else {
+                fwdBtn.classList.remove('hidden');
+                finBtn.classList.add('hidden');
+            }
+        }
+
+        function navigateQuiz(delta) {
+            const next = quizIdx + delta;
+            if (next >= 0 && next < activeStory.quiz.length) {
+                quizIdx = next;
+                renderQuizQ();
+            }
+        }
+
+        function gradeQuiz() {
+            const missing = selectedAnswers.findIndex(a => a === null);
+            if (missing !== -1) {
+                alert(`Please choose an answer for Question ${missing + 1}!`);
+                quizIdx = missing;
+                renderQuizQ();
+                return;
+            }
+
+            let score = 0;
+            activeStory.quiz.forEach((q, i) => {
+                if (selectedAnswers[i] === q.a) score++;
+            });
+
+            const prog = getProgress();
+            prog.points += score;
+            saveProgress(prog);
+
+            document.getElementById('quizCard').classList.add('hidden');
+            document.getElementById('quizScoreCard').classList.remove('hidden');
+            document.getElementById('scoreDetail').textContent = `You earned ${score} out of ${activeStory.quiz.length} Stars!`;
+
+            if (score >= 4) {
+                document.getElementById('scoreEmoji').textContent = "👑";
+                document.getElementById('scoreHeading').textContent = "Superstar Champion!";
+            } else {
+                document.getElementById('scoreEmoji').textContent = "🎈";
+                document.getElementById('scoreHeading').textContent = "Good Try Little Explorer!";
+            }
+        }
+
+        function switchView(viewId) {
+            ['libraryView', 'storyView', 'quizView', 'profileView'].forEach(id => {
+                document.getElementById(id).classList.toggle('hidden', id !== viewId);
+            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (viewId === 'profileView') renderProfile();
+            if (viewId === 'libraryView') renderStoryCards();
+        }
+
+        function goHome() {
+            stopVoice();
+            switchView('libraryView');
+        }
+
+        function renderProfile() {
+            const prog = getProgress();
+            document.getElementById('statStoriesRead').textContent = `${prog.completed.length} / 200`;
+            document.getElementById('statQuizPoints').textContent = prog.points;
+
+            const badgeBox = document.getElementById('starsBadgeList');
+            badgeBox.innerHTML = '';
+            if (prog.completed.length === 0) {
+                badgeBox.innerHTML = `<p style="font-weight:700; color:#636E72;">Read your first moral tale from the library to unlock bright golden badges!</p>`;
+                return;
+            }
+
+            prog.completed.forEach(id => {
+                const st = stories.find(s => s.id === id);
+                if (st) {
+                    const pill = document.createElement('div');
+                    pill.className = 'btn-kid btn-yellow';
+                    pill.style.fontSize = '0.92rem';
+                    pill.innerHTML = `⭐ ${st.title}`;
+                    badgeBox.appendChild(pill);
+                }
+            });
+        }
+
+        function resetStarsData() {
+            if (confirm("Reset all your star progress and badges?")) {
+                localStorage.removeItem(STORE_KEY);
+                renderProfile();
+                renderStoryCards();
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const target = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', target);
+            document.getElementById('btnTheme').textContent = target === 'dark' ? '☀️' : '🌙';
+        }
+
+        document.getElementById('searchInput').addEventListener('input', renderStoryCards);
+        document.getElementById('categoryFilter').addEventListener('change', renderStoryCards);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSafe3DBackground();
+            renderStoryCards();
+        });
+    </script>
+</body>
+</html>
